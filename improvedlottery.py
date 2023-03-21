@@ -16,21 +16,29 @@ class Lottery (sp.Contract):
 
         #create a local value for for_loop
         x = sp.local("x", 0)
-        
+    
         #assertions
         sp.verify(self.data.tickets_available>0, "NO TICKETS AVAILABLE")
         sp.verify(sp.amount >= sp.mul(self.data.ticket_cost,no_of_tickets), "INVALID AMOUNT")
 
+        y = sp.local('y', no_of_tickets)
+
+        #check if available tickets are not greater than the tickets to be bought
+        sp.if sp.to_int(no_of_tickets) > sp.to_int(self.data.tickets_available):
+            y.value = self.data.tickets_available
+        sp.else:
+            y.value = no_of_tickets
+        
         #storage changes
-        sp.while x.value < no_of_tickets:
+        sp.while x.value < y.value:
             self.data.players[sp.len(self.data.players)] = sp.sender
             x.value = x.value + 1
             
         #update number of available tickets
-        self.data.tickets_available = sp.as_nat(self.data.tickets_available - no_of_tickets)
+        self.data.tickets_available = sp.as_nat(self.data.tickets_available - y.value)
 
         #return extra tez
-        extra_amount= sp.amount- sp.mul(self.data.ticket_cost,no_of_tickets)
+        extra_amount= sp.amount- sp.mul(self.data.ticket_cost,y.value)
         sp.if extra_amount > sp.tez(0):
             sp.send(sp.sender, extra_amount)
 
@@ -59,7 +67,8 @@ class Lottery (sp.Contract):
         
         #assertion
         sp.verify(self.data.tickets_available == 0, "GAME IS STILL ON")
-        sp.verify(sp.sender == self.data.operator, "NOT_AUTHORISED")
+        sp.verify(sp.sender == self.data.operator, "NOT AUTHORISED")
+        sp.verify(ticket_cost >= sp.tez(1), "INVALID AMOUNT")
 
         #change ticket cost 
         self.data.ticket_cost = ticket_cost
@@ -70,7 +79,8 @@ class Lottery (sp.Contract):
         
         #assertion
         sp.verify(self.data.tickets_available == 0, "GAME IS STILL ON")
-        sp.verify(sp.sender == self.data.operator, "NOT_AUTHORISED")
+        sp.verify(sp.sender == self.data.operator, "NOT AUTHORISED")
+        sp.verify(max_tickets >= sp.nat(1), "INVALID AMOUNT")
 
         #change max number of tickets
         self.data.max_tickets = max_tickets
@@ -93,12 +103,12 @@ def test():
     scenario += lottery
     
     #buy_ticket
-    scenario += lottery.buy_ticket(2).run(
-        amount= sp.tez(2), sender=alice
+    scenario += lottery.buy_ticket(6).run(
+        amount= sp.tez(6), sender=alice
     ) 
-    scenario += lottery.buy_ticket(3).run(
-        amount= sp.tez(5), sender=bob
-    )
+    #scenario += lottery.buy_ticket(3).run(
+    #    amount= sp.tez(5), sender=bob
+    #)
 
 
     #change max tickets
