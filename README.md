@@ -1,4 +1,4 @@
 # SmartPy Mini Project
 
-Deployed Contract Name (in Ghostnet): KT1UmjFq4shoJUX9HAamvHuy4Q216gBzG88v
+Deployed Contract Name (in Limanet): KT1SKZxvze4FmLddFxyLH84ruFv2AvC5L71L
 
